@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: dark-mode-variant
+expected_outcome: |
+  Two animated SVG files, one for the light theme in the brand color and one for the dark theme in a light color
+  that is visible on #16181d, both with the same recipe and cycle, both validated and checked with rendered frames
+  (the dark one rendered on a dark background).

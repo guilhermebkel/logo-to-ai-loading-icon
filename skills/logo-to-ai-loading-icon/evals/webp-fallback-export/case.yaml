@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: webp-fallback-export
+expected_outcome: |
+  An animated SVG plus an animated WebP that keeps a transparent background, covers one full cycle, and is small
+  (tens of KB). The agent explains that GIF has only 1-bit transparency and chose WebP, and says which file to use where.

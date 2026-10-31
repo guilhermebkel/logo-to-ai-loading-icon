@@ -1,0 +1,49 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r skills/logo-to-ai-loading-icon/requirements.txt pyyaml
+          playwright install --with-deps chromium
+      - name: Check SKILL.md frontmatter
+        run: |
+          python - <<'PY'
+          import re, sys, yaml
+          text = open("skills/logo-to-ai-loading-icon/SKILL.md", encoding="utf-8").read()
+          fm = yaml.safe_load(re.match(r"---\n(.*?)\n---", text, re.S).group(1))
+          allowed = {"name", "description", "license", "compatibility", "allowed-tools", "metadata"}
+          extra = set(fm) - allowed
+          assert not extra, f"unexpected frontmatter keys: {extra}"
+          assert fm["name"] == "logo-to-ai-loading-icon", fm["name"]
+          assert len(fm["description"]) <= 1024
+          assert all(isinstance(v, str) for v in fm["metadata"].values()), "metadata values must be strings"
+          print("frontmatter ok")
+          PY
+      - name: Examples are up to date
+        working-directory: skills/logo-to-ai-loading-icon
+        run: |
+          for r in orbit swap satellites breathe bloom hop; do
+            python scripts/generate_symbols.py --recipe $r --out assets/examples/symbols-$r.svg
+          done
+          python scripts/generate_symbols.py --recipe hop --fit --out assets/examples/symbols-hop-fit.svg
+          python scripts/generate_symbols.py --recipe hop --fit --color "#E8EAF6" --out assets/examples/symbols-hop-fit-dark.svg
+          python scripts/generate_symbols.py --recipe bloom --fit --out assets/examples/symbols-bloom-fit.svg
+          python scripts/generate_symbols.py --recipe bloom --fit --color "#E8EAF6" --out assets/examples/symbols-bloom-fit-dark.svg
+          git diff --exit-code -- assets/examples
+      - name: Validate example SVGs
+        working-directory: skills/logo-to-ai-loading-icon
+        run: python scripts/validate_svg.py assets/examples/*.svg
+      - name: Render a contact sheet
+        working-directory: skills/logo-to-ai-loading-icon
+        run: python scripts/render_frames.py assets/examples/symbols-hop.svg --duration 1.1 --sheet "$RUNNER_TEMP/sheet.png"

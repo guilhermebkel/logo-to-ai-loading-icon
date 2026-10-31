@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: symbols-from-brand-logo
+expected_outcome: |
+  An animated SVG that uses only CSS, shows shapes derived from the logo (a ring and a cross) in the brand color
+  with no tile and no letters, returns to its resting pose at the end of every cycle, and passes the validation script.
+  The agent looked at rendered frames before delivering.
