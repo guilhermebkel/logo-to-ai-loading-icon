@@ -4,7 +4,7 @@ description: Create an animated SVG loading icon (pure CSS, no JavaScript) for A
 license: MIT
 compatibility: Needs Python 3 with Playwright (Chromium) and Pillow for the measure, render and export scripts (pip install -r requirements.txt, then playwright install chromium). Writing the SVG itself needs nothing else.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   updated: "2026-10-31"
 ---
 
