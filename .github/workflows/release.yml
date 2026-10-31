@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "patch, minor or major; none releases the current version as is (first release)"
+        required: true
+        default: patch
+        type: choice
+        options: [patch, minor, major, none]
+
+concurrency:
+  group: main-writes
+  cancel-in-progress: false
+
+jobs:
+  check:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump metadata.version and metadata.updated in SKILL.md
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          python3 - <<'PY'
+          import os, re, datetime
+          path = "skills/logo-to-ai-loading-icon/SKILL.md"
+          text = open(path, encoding="utf-8").read()
+          m = re.search(r'^  version: "(\d+)\.(\d+)\.(\d+)"$', text, re.M)
+          if not m:
+              raise SystemExit("SKILL.md has no metadata.version")
+          major, minor, patch = map(int, m.groups())
+          bump = os.environ["BUMP"]
+          if bump == "major": major, minor, patch = major + 1, 0, 0
+          elif bump == "minor": minor, patch = minor + 1, 0
+          elif bump == "patch": patch += 1
+          version = f"{major}.{minor}.{patch}"
+          today = datetime.date.today().isoformat()
+          text = text.replace(m.group(0), f'  version: "{version}"')
+          text = re.sub(r'^  updated: "[^"]*"$', f'  updated: "{today}"', text, flags=re.M)
+          open(path, "w", encoding="utf-8").write(text)
+          open(os.environ["GITHUB_ENV"], "a").write(f"VERSION={version}\n")
+          PY
+          if git rev-parse -q --verify "refs/tags/v$VERSION" > /dev/null; then
+            if [ "$BUMP" != "none" ]; then
+              echo "v$VERSION is already released; pick patch, minor or major." >&2
+              exit 1
+            fi
+            echo "v$VERSION is already tagged; resuming: the tag and push are skipped."
+            echo "IS_TAGGED=true" >> "$GITHUB_ENV"
+          fi
+      - name: Commit, tag and push
+        if: env.IS_TAGGED != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skills/logo-to-ai-loading-icon/SKILL.md
+          if ! git diff --cached --quiet; then
+            git commit -m "release: v$VERSION [skip ci]"
+          fi
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin HEAD:main "v$VERSION"
+      - name: Package the .skill
+        run: |
+          mkdir -p dist
+          cd skills
+          zip -r ../dist/logo-to-ai-loading-icon.skill logo-to-ai-loading-icon -x '*/__pycache__/*' '*.pyc'
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "The GitHub Release v$VERSION already exists; skipping."
+          else
+            gh release create "v$VERSION" dist/logo-to-ai-loading-icon.skill \
+              --title "v$VERSION" --generate-notes --verify-tag
+          fi

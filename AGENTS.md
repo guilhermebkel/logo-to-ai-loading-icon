@@ -12,6 +12,10 @@ This repository is an agent skill, `logo-to-ai-loading-icon`: it turns a brand l
   - `evals/`: test cases (`prompt.md`, `case.yaml`, `graders/`, `files/`).
 - `README.md`, `LICENSE`, `.github/workflows/ci.yml`: repository-level files.
 
+## Releases
+
+Releases are manual: Actions → Release → Run workflow on `main`, choosing `patch`, `minor`, `major` or `none` (release the current version as is). The workflow runs the CI checks, bumps `metadata.version` and `metadata.updated` in `SKILL.md`, commits `release: vX.Y.Z [skip ci]`, tags `vX.Y.Z`, attaches the packaged `.skill` and creates the GitHub Release with generated notes. Do not edit `metadata.version` by hand.
+
 ## Commands
 
 ```bash
