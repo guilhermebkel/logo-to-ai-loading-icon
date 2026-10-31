@@ -4,7 +4,6 @@ description: Create an animated SVG loading icon (pure CSS, no JavaScript) for A
 license: MIT
 compatibility: Needs Python 3 with Playwright (Chromium) and Pillow for the measure, render and export scripts (pip install -r requirements.txt, then playwright install chromium). Writing the SVG itself needs nothing else.
 metadata:
-  sources-file: "references/fontes.md"
   updated: "2026-10-31"
 ---
 
@@ -50,4 +49,3 @@ SVG with CSS is the default for the web: a few KB, sharp at any size, honors `pr
 - `references/recipes.md`: recipe catalog, durations, legibility at small sizes, states, design preferences.
 - `references/pitfalls.md`: defects that already happened and how to fix them.
 - `references/verification.md`: how to check the animation without watching it in real time.
-- `references/fontes.md`: sources consulted (Portuguese, the author's standard format).
